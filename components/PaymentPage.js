@@ -99,11 +99,22 @@ const PaymentPage = ({ username }) => {
     try {
       order = await initiate(amount, username, paymentform);
     } catch (err) {
+      console.error('initiate threw error', err);
       toast.error("Failed to create order");
       return;
     }
 
+    if (order?.error) {
+      console.error('initiate returned error', order);
+      const message = order.error || "Failed to create order";
+      // Show a helpful toast and include a short detail in console for debugging
+      toast.error(message);
+      if (order.detail) console.info('order detail:', order.detail);
+      return;
+    }
+
     if (!order?.id) {
+      console.error('initiate returned invalid order', order);
       toast.error("Invalid order response");
       return;
     }

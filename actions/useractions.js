@@ -8,30 +8,67 @@ import Payment from "@/models/Payment";
 /* ---------------- PAYMENT ---------------- */
 
 export const initiate = async (amount, to_username, paymentform) => {
-  await connectDb();
+  try {
+    await connectDb();
 
-  const user = await User.findOne({ username: to_username });
-  if (!user) throw new Error("User not found");
+    // Use the robust lookup helper so we accept normalized, case-insensitive and email lookups
+    const user = await fetchuser(to_username);
+    console.log("initiate - lookup result for", to_username, user ? { username: user.username, razorpayid: user.razorpayid ? 'present' : 'missing' } : null);
 
-  const instance = new Razorpay({
-    key_id: user.razorpayid,
-    key_secret: user.razorpaysecret,
-  });
+    if (!user) {
+      const msg = "Recipient user not found";
+      console.error("initiate:", msg, { to_username });
+      return { error: msg };
+    }
 
-  const order = await instance.orders.create({
-    amount: Number(amount),
-    currency: "INR",
-  });
+    if (!user.razorpayid) {
+      const msg = "Recipient has not configured Razorpay (missing key id)";
+      console.error("initiate:", msg, { to_username, user });
+      return { error: msg };
+    }
 
-  await Payment.create({
-    oid: order.id,
-    amount: amount / 100,
-    to_user: to_username,
-    name: paymentform.name,
-    message: paymentform.message,
-  });
+    const key_secret = user.razorpaysecret || process.env.razorpaysecret;
+    if (!key_secret) {
+      const msg = "Recipient missing Razorpay secret";
+      console.error("initiate:", msg, { to_username, user });
+      return { error: msg };
+    }
 
-  return order;
+    const instance = new Razorpay({
+      key_id: user.razorpayid,
+      key_secret,
+    });
+
+    let order;
+    try {
+      order = await instance.orders.create({
+        amount: Number(amount),
+        currency: "INR",
+      });
+      console.log("initiate: created razorpay order", { order_id: order?.id, to_username });
+    } catch (err) {
+      console.error("initiate: razorpay order creation failed", err);
+      return { error: "Razorpay order creation failed", detail: err?.message || String(err) };
+    }
+
+    try {
+      await Payment.create({
+        oid: order.id,
+        amount: amount / 100,
+        to_user: to_username,
+        name: paymentform.name,
+        message: paymentform.message,
+      });
+    } catch (err) {
+      console.error("initiate: failed to persist payment record", err);
+      return { error: "Failed to create payment record", detail: err?.message || String(err) };
+    }
+
+    return order;
+  } catch (err) {
+    console.error("initiate error:", err);
+    return { error: "Server error while creating order", detail: err?.message };
+  }
 };
 
 /* ---------------- FETCH USER ---------------- */

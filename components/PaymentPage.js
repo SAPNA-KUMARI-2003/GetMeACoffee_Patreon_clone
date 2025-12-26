@@ -122,7 +122,7 @@ const PaymentPage = ({ username }) => {
       // ✅ payment success callback
       console.log("Payment success:", response);
 
-      await fetch("/api/payment/verify", {
+      const res = await fetch("/api/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,6 +131,12 @@ const PaymentPage = ({ username }) => {
           razorpay_signature: response.razorpay_signature,
         }),
       });
+
+      const verification = await res.json();
+      console.log("Verification response:", verification);
+      if (!verification?.success) {
+        throw new Error(verification?.message || "Verification failed");
+      }
 
       alert("Payment successful 🎉");
     } catch (err) {

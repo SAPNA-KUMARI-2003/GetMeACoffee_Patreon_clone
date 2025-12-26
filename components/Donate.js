@@ -27,7 +27,7 @@ const Donate = () => {
 					</div>
 					<div className="flex-1">
 						<h2 className="text-2xl font-semibold">Support a creator ☕</h2>
-						<p className="text-sm text-slate-300 mt-1">Enter the creator's username to go to their payment page.</p>
+						<p className="text-sm text-slate-300 mt-1">{"Enter the creator's username to go to their payment page."}</p>
 						<form onSubmit={handleSubmit} className="mt-4 flex flex-col sm:flex-row items-stretch gap-3">
 							<label htmlFor="donate-username" className="sr-only">Username</label>
 							<div className="flex items-center bg-white/3 rounded-md border border-white/6 px-3 py-2 flex-1">

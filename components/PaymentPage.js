@@ -190,7 +190,7 @@ const PaymentPage = ({ username }) => {
 
             {!paymentEnabled && (
               <div className="text-yellow-400 mb-4">
-                This user hasn't set up payments yet.
+                This user has not set up payments yet.
               </div>
             )}
 

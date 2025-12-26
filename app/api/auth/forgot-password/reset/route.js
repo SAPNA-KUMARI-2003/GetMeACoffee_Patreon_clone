@@ -1,7 +1,7 @@
 import connectDb from "@/db/connectDb";
 import User from "@/models/User";
 import Otp from "@/models/Otp";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export async function POST(req) {
   try {

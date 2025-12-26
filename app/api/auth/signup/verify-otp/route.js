@@ -1,6 +1,6 @@
 import connectDb from "@/db/connectDb";
 import Otp from "@/models/Otp";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import User from "@/models/User";
 
 export async function POST(req) {

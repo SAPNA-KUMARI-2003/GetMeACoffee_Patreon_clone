@@ -109,15 +109,37 @@ const PaymentPage = ({ username }) => {
     }
 
     const options = {
-      key: currentUser.razorpayid,
-      amount: amount,
-      currency: "INR",
-      name: "Get Me A Coffee",
-      description: "Test Transaction",
-      order_id: order.id,
-      callback_url: `${process.env.NEXT_PUBLIC_URL}/api/razorpay`,
-      theme: { color: "#3399cc" },
-    };
+  key: currentUser.razorpayid,
+  amount: amount,
+  currency: "INR",
+  name: "Get Me A Coffee",
+  description: "Test Transaction",
+  order_id: order.id,
+  theme: { color: "#3399cc" },
+
+  handler: async function (response) {
+    try {
+      // ✅ payment success callback
+      console.log("Payment success:", response);
+
+      await fetch("/api/payment/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        }),
+      });
+
+      alert("Payment successful 🎉");
+    } catch (err) {
+      console.error("Verification failed:", err);
+      alert("Payment completed but verification failed");
+    }
+  },
+};
+
 
     const rzp1 = new window.Razorpay(options);
     rzp1.open();
